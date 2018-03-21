@@ -1,10 +1,11 @@
 import tensorflow as tf
-import random
+#import random
 import matplotlib.pyplot as plt
 import numpy as np
 
 # this is for comparing the accuracies
-random.seed(627)
+#random.seed(627)
+tf.set_random_seed(627)
 
 # get input data from tensorflow mnist module in one_hot method
 from tensorflow.examples.tutorials.mnist import input_data
@@ -73,7 +74,7 @@ writer = tf.summary.FileWriter('./logs', sess.graph)
 
 # training start
 # change epoch
-for epoch in range(15):
+for epoch in range(10):
 	total_cost = 0
 
 	for i in range(total_batch):

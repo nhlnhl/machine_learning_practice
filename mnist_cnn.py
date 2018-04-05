@@ -74,7 +74,7 @@ writer = tf.summary.FileWriter('./logs', sess.graph)
 
 # training start
 # change epoch
-for epoch in range(10):
+for epoch in range(15):
 	total_cost = 0
 
 	for i in range(total_batch):

@@ -42,7 +42,7 @@ with tf.name_scope('layer2'):
 
 with tf.name_scope('fully_connected_layer'):
 	#W3 = tf.Variable(tf.random_normal([7 * 7 * 64, 256], stddev=0.01))
-	W3 = tf.get_variable("W3", shape=[7 * 7 * 64, 256], initializer=tf.contrib.layers.xavier_initializer())
+	W3 = tf.get_variable("W3", shape=[7 * 7 * 64, 128], initializer=tf.contrib.layers.xavier_initializer())
 	L3 = tf.reshape(L2, [-1, 7 * 7 * 64])
 	L3 = tf.matmul(L3, W3)
 	L3 = tf.nn.relu(L3)
@@ -50,13 +50,13 @@ with tf.name_scope('fully_connected_layer'):
 
 with tf.name_scope('last_layer'):
 	#W4 = tf.Variable(tf.random_normal([256, 10], stddev=0.01))
-	W4 = tf.get_variable("W4", shape=[256, 10], initializer=tf.contrib.layers.xavier_initializer())
+	W4 = tf.get_variable("W4", shape=[128, 10], initializer=tf.contrib.layers.xavier_initializer())
 	model = tf.matmul(L3, W4)
 
 # cost function
 cost = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=Y))
 # try with other optimizers and change learning rate
-optimizer = tf.train.AdamOptimizer(0.001).minimize(cost)
+optimizer = tf.train.GradientDescentOptimizer(0.001).minimize(cost)
 
 # before starting training, initialize variables
 init = tf.global_variables_initializer()
@@ -68,13 +68,17 @@ sess.run(init)
 batch_size = 100
 total_batch = int(mnist.train.num_examples / batch_size)
 
+is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
+accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
+tf.summary.scalar('accuracy', accuracy)
+
 # tensorboard --logdir=./logs --port=any number you want
 merged = tf.summary.merge_all()
 writer = tf.summary.FileWriter('./logs', sess.graph)
 
 # training start
 # change epoch
-for epoch in range(15):
+for epoch in range(2):
 	total_cost = 0
 
 	for i in range(total_batch):
@@ -86,12 +90,13 @@ for epoch in range(15):
 
 		total_cost += cost_val
 
+		summary = sess.run(merged, feed_dict={X: batch_xs, Y: batch_ys, keep_prob: 0.7})
+		writer.add_summary(summary, i)
+
 	print('Epoch:', epoch + 1, '	Average cost =', total_cost / total_batch)
 # end of training
 
 # calculate the accuracy using test set
-is_correct = tf.equal(tf.argmax(model, 1), tf.argmax(Y, 1))
-accuracy = tf.reduce_mean(tf.cast(is_correct, tf.float32))
 print('Accuracy =', sess.run(accuracy, feed_dict={X: mnist.test.images.reshape(-1, 28, 28, 1), Y: mnist.test.labels, keep_prob: 1}))
 
 # use matplot
